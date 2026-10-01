@@ -1,0 +1,39 @@
+services:
+  # Docker-in-Docker service used by Jenkins to build container images
+  docker:
+    image: docker:27-dind
+    container_name: jenkins-docker
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=
+    volumes:
+      - jenkins_docker_data:/var/lib/docker
+    restart: unless-stopped
+
+  # Jenkins server used to run the CI/CD pipeline
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    privileged: true
+    user: root
+    depends_on:
+      - docker
+    ports:
+      # Jenkins web interface
+      - "8080:8080"
+      # Jenkins agent communication port
+      - "50000:50000"
+    environment:
+      # Allows Jenkins pipeline stages to communicate with Docker-in-Docker
+      - DOCKER_HOST=tcp://docker:2375
+    volumes:
+      # Persists Jenkins jobs, plugins and configuration
+      - jenkins_home:/var/jenkins_home
+    restart: unless-stopped
+
+volumes:
+  # Persistent storage for Jenkins
+  jenkins_home:
+
+  # Persistent storage for Docker-in-Docker
+  jenkins_docker_data:
