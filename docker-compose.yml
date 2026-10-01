@@ -14,8 +14,6 @@ services:
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins
-    privileged: true
-    user: root
     depends_on:
       - docker
     ports:
